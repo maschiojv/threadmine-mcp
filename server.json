@@ -1,0 +1,35 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "dev.threadmine/mcp",
+  "description": "Official MCP server for ThreadMine — instant JVM thread dump analysis: deadlocks, CPU spikes, pool exhaustion and virtual thread pinning, with health score and report link.",
+  "repository": {
+    "url": "https://github.com/maschiojv/threadmine-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@threadmine/mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "THREADMINE_API_KEY",
+          "description": "ThreadMine API key (create at app.threadmine.dev, Settings > API Keys)",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "THREADMINE_API_URL",
+          "description": "Override the ThreadMine API endpoint (default: https://api.threadmine.dev)",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}

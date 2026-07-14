@@ -1,0 +1,42 @@
+{
+  "name": "@threadmine/mcp",
+  "version": "0.1.0",
+  "description": "Official MCP server for ThreadMine — instant JVM thread dump analysis inside Claude Code, Claude Desktop and Cursor.",
+  "license": "MIT",
+  "mcpName": "dev.threadmine/mcp",
+  "homepage": "https://threadmine.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maschiojv/threadmine-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/maschiojv/threadmine-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "thread-dump",
+    "jvm",
+    "java",
+    "deadlock",
+    "threadmine"
+  ],
+  "type": "module",
+  "bin": { "threadmine-mcp": "dist/index.js" },
+  "files": ["dist", "README.md"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
