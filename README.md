@@ -63,6 +63,10 @@ Ask your assistant things like:
 
 The dump is sent to the ThreadMine API over TLS. Thread dumps can carry hostnames, class and package names and SQL fragments. If your policy forbids sending production dumps to a third party, run them through [tm-anon](https://github.com/maschiojv/threadmine-anonymizer) first: it anonymizes the dump locally, keeps the mapping on your machine, and ThreadMine still analyzes the result.
 
+## Hung tests in CI
+
+When a JVM test hangs in GitHub Actions and the job hits `timeout-minutes`, [threadmine-action](https://github.com/maschiojv/threadmine-action) dumps the stuck test JVM and writes the same diagnosis to the job summary and the pull request. It's one line in the workflow (`uses: maschiojv/threadmine-action@v1`) and needs no account.
+
 ## Notes
 
 - `THREADMINE_API_URL` overrides the API endpoint (self-hosted / staging). `THREADMINE_SITE_URL` overrides the site used in anonymous report links.
