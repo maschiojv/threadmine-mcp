@@ -11,7 +11,7 @@
   "mcpServers": {
     "threadmine": {
       "command": "npx",
-      "args": ["-y", "@threadmine/mcp@^0.2.0"]
+      "args": ["-y", "@threadmine/mcp@0.2.0"]
     }
   }
 }
