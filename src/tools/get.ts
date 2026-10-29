@@ -1,35 +1,40 @@
-import { ApiError, type ThreadMineClient } from '../client.js'
-import { formatAnalysis, reportLink } from '../format.js'
+import { ApiError } from '../client.js'
+import { formatAnalysis } from '../format.js'
+import type { AnalysisGateway } from '../gateway.js'
 import { mapError, type ToolOutcome } from './analyze.js'
 
 export interface GetAnalysisDeps {
-  client: ThreadMineClient
-  appBaseUrl: string
+  gateway: AnalysisGateway
 }
 
 export async function getAnalysisTool(
   input: { analysis_id: string },
   deps: GetAnalysisDeps,
 ): Promise<ToolOutcome> {
+  const { gateway } = deps
+  const ref = input.analysis_id
   try {
-    const analysis = await deps.client.getAnalysis(input.analysis_id)
-    if (analysis.status === 'CONCLUIDA') {
-      return { text: formatAnalysis(analysis, deps.appBaseUrl) }
-    }
-    if (analysis.status === 'FALHA') {
+    const result = await gateway.fetch(ref)
+    if (result.status === 'CONCLUIDA' && result.detail) {
       return {
-        isError: true,
-        text: `Analysis ${input.analysis_id} failed: ${analysis.erroProcessamento ?? 'unknown processing error'}.`,
+        text: formatAnalysis(result.detail, {
+          link: gateway.link(ref), ref, anonymous: gateway.anonymous, expiresAt: result.expiresAt,
+        }),
       }
     }
-    return {
-      text: `Analysis ${input.analysis_id} is ${analysis.status}. ` +
-        `Check ${reportLink(input.analysis_id, deps.appBaseUrl)} or try again shortly.`,
+    if (result.status === 'FALHA') {
+      return { isError: true, text: `Analysis ${ref} failed: ${result.failure ?? 'unknown processing error'}.` }
     }
+    return { text: `Analysis ${ref} is ${result.status}. Check ${gateway.link(ref)} or try again shortly.` }
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) {
-      return { isError: true, text: `Analysis "${input.analysis_id}" was not found in your workspace.` }
+      return {
+        isError: true,
+        text: gateway.anonymous
+          ? `Analysis "${ref}" was not found. Reports made without an account expire after 7 days.`
+          : `Analysis "${ref}" was not found in your workspace.`,
+      }
     }
-    return mapError(e)
+    return mapError(e, gateway.anonymous)
   }
 }

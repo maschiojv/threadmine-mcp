@@ -1,6 +1,6 @@
 {
   "name": "@threadmine/mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Official MCP server for ThreadMine — instant JVM thread dump analysis inside Claude Code, Claude Desktop and Cursor.",
   "license": "MIT",
   "mcpName": "dev.threadmine/mcp",

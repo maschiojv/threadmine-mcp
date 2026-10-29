@@ -6,21 +6,21 @@
     "url": "https://github.com/maschiojv/threadmine-mcp",
     "source": "github"
   },
-  "version": "0.1.0",
+  "version": "0.2.0",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@threadmine/mcp",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
           "name": "THREADMINE_API_KEY",
-          "description": "ThreadMine API key (create at app.threadmine.dev, Settings > API Keys)",
-          "isRequired": true,
+          "description": "Optional. Without it, analyses run anonymously (5/hour per IP, report expires in 7 days)",
+          "isRequired": false,
           "isSecret": true
         },
         {

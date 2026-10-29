@@ -5,6 +5,7 @@ import { buildServer } from '../src/server.js'
 
 const APP = 'https://app.threadmine.dev'
 const API = 'https://api.example.test'
+const SITE = 'https://threadmine.example.test'
 
 function jsonResponse(status: number, body: unknown) {
   return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
@@ -19,7 +20,7 @@ async function connect(server: ReturnType<typeof buildServer>) {
 
 describe('MCP server (end to end over InMemoryTransport)', () => {
   it('lists both tools', async () => {
-    const client = await connect(buildServer({ apiKey: 'tf_x', apiBaseUrl: API, appBaseUrl: APP }))
+    const client = await connect(buildServer({ apiKey: 'tf_x', apiBaseUrl: API, appBaseUrl: APP, siteBaseUrl: SITE }))
     const { tools } = await client.listTools()
     const names = tools.map((t) => t.name).sort()
     expect(names).toEqual(['analyze_thread_dump', 'get_analysis'])
@@ -34,7 +35,7 @@ describe('MCP server (end to end over InMemoryTransport)', () => {
         problemasDetectados: { problemas: [], totalProblemas: 0, totalCriticos: 0, totalWarnings: 0, totalInfo: 0 },
       }))
     const client = await connect(buildServer({
-      apiKey: 'tf_x', apiBaseUrl: API, appBaseUrl: APP, fetchFn: fetchFn as unknown as typeof fetch,
+      apiKey: 'tf_x', apiBaseUrl: API, appBaseUrl: APP, siteBaseUrl: SITE, fetchFn: fetchFn as unknown as typeof fetch,
     }))
 
     const result = await client.callTool({
@@ -54,18 +55,10 @@ describe('MCP server (end to end over InMemoryTransport)', () => {
       problemasDetectados: { problemas: [], totalProblemas: 0, totalCriticos: 0, totalWarnings: 0, totalInfo: 0 },
     }))
     const client = await connect(buildServer({
-      apiKey: 'tf_x', apiBaseUrl: API, appBaseUrl: APP, fetchFn: fetchFn as unknown as typeof fetch,
+      apiKey: 'tf_x', apiBaseUrl: API, appBaseUrl: APP, siteBaseUrl: SITE, fetchFn: fetchFn as unknown as typeof fetch,
     }))
     const result = await client.callTool({ name: 'get_analysis', arguments: { analysis_id: 'an-5' } })
     const text = (result.content as Array<{ type: string; text: string }>)[0].text
     expect(text).toContain('91/100')
-  })
-
-  it('tool calls fail with clear guidance when THREADMINE_API_KEY is missing', async () => {
-    const client = await connect(buildServer({ apiKey: undefined, apiBaseUrl: API, appBaseUrl: APP }))
-    const result = await client.callTool({ name: 'analyze_thread_dump', arguments: { content: 'dump' } })
-    expect(result.isError).toBe(true)
-    const text = (result.content as Array<{ type: string; text: string }>)[0].text
-    expect(text).toContain('THREADMINE_API_KEY')
   })
 })

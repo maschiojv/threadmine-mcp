@@ -2,11 +2,12 @@ import { describe, it, expect, vi } from 'vitest'
 import { getAnalysisTool } from '../src/tools/get.js'
 import { ApiError } from '../src/client.js'
 import type { AnalysisDetail, ThreadMineClient } from '../src/client.js'
+import { AccountGateway } from '../src/gateway.js'
 
 const APP = 'https://app.threadmine.dev'
 
 function withClient(getAnalysis: ReturnType<typeof vi.fn>) {
-  return { client: { getAnalysis } as unknown as ThreadMineClient, appBaseUrl: APP }
+  return { gateway: new AccountGateway({ getAnalysis } as unknown as ThreadMineClient, APP) }
 }
 
 describe('getAnalysisTool', () => {

@@ -1,5 +1,6 @@
-import { AuthError, QuotaError, RateLimitError, type ThreadMineClient } from '../client.js'
-import { formatAnalysis, reportLink } from '../format.js'
+import { AuthError, QuotaError, RateLimitError } from '../client.js'
+import { formatAnalysis, PRICING_URL } from '../format.js'
+import type { AnalysisGateway } from '../gateway.js'
 
 export const POLL_INTERVAL_MS = 2000
 export const MAX_POLL_ATTEMPTS = 60 // 60 x 2s = 120s total
@@ -11,8 +12,7 @@ export interface AnalyzeInput {
 }
 
 export interface AnalyzeDeps {
-  client: ThreadMineClient
-  appBaseUrl: string
+  gateway: AnalysisGateway
   readFile: (path: string) => Promise<string>
   hostname: () => string
   sleep: (ms: number) => Promise<void>
@@ -46,48 +46,49 @@ export async function analyzeThreadDump(input: AnalyzeInput, deps: AnalyzeDeps):
     dump = input.content!
   }
 
+  const { gateway } = deps
   const title = input.title ?? `Thread dump via MCP (${deps.hostname()})`
 
   try {
-    const { id } = await deps.client.createAnalysis({
-      title,
-      contentBase64: Buffer.from(dump, 'utf8').toString('base64'),
-      hostname: deps.hostname(),
-    })
+    const ref = await gateway.submit({ dump, title, hostname: deps.hostname() })
 
     for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
-      const analysis = await deps.client.getAnalysis(id)
-      if (TERMINAL_STATUSES.has(analysis.status)) {
-        if (analysis.status === 'CONCLUIDA') {
-          return { text: formatAnalysis(analysis, deps.appBaseUrl) }
+      const result = await gateway.fetch(ref)
+      if (TERMINAL_STATUSES.has(result.status)) {
+        if (result.status === 'CONCLUIDA' && result.detail) {
+          return {
+            text: formatAnalysis(result.detail, {
+              link: gateway.link(ref), ref, anonymous: gateway.anonymous, expiresAt: result.expiresAt,
+            }),
+          }
         }
-        if (analysis.status === 'FALHA') {
+        if (result.status === 'FALHA') {
           return {
             isError: true,
-            text: `Analysis failed: ${analysis.erroProcessamento ?? 'unknown processing error'}. ` +
+            text: `Analysis failed: ${result.failure ?? 'unknown processing error'}. ` +
               `Make sure the input is a JVM thread dump (jstack, jcmd Thread.print, kill -3).`,
           }
         }
-        return { isError: true, text: `Analysis ${id} was cancelled.` }
+        return { isError: true, text: `Analysis ${ref} was cancelled.` }
       }
       await deps.sleep(POLL_INTERVAL_MS)
     }
 
     return {
-      text: `The analysis is still processing (id: ${id}). ` +
-        `Check the report at ${reportLink(id, deps.appBaseUrl)} or call get_analysis with this id in a moment.`,
+      text: `The analysis is still processing (id: ${ref}). ` +
+        `Check the report at ${gateway.link(ref)} or call get_analysis with this id in a moment.`,
     }
   } catch (e) {
-    return mapError(e)
+    return mapError(e, gateway.anonymous)
   }
 }
 
-export function mapError(e: unknown): ToolOutcome {
+export function mapError(e: unknown, anonymous = false): ToolOutcome {
   if (e instanceof AuthError) {
     return {
       isError: true,
-      text: 'Invalid or missing API key. Create one at https://app.threadmine.dev (Settings → API Keys) ' +
-        'and set it as the THREADMINE_API_KEY environment variable in your MCP configuration.',
+      text: 'Invalid API key. Create one at https://app.threadmine.dev (Settings → API Keys) and set it as the ' +
+        'THREADMINE_API_KEY environment variable, or remove the variable to analyze without an account.',
     }
   }
   if (e instanceof QuotaError) {
@@ -100,6 +101,14 @@ export function mapError(e: unknown): ToolOutcome {
     }
   }
   if (e instanceof RateLimitError) {
+    if (anonymous) {
+      const minutes = Math.max(1, Math.ceil(e.retryAfterSeconds / 60))
+      return {
+        isError: true,
+        text: `The anonymous limit was reached (5 analyses per hour and 20 per day per IP). ` +
+          `Try again in about ${minutes} min. Paid plans have no daily limit: ${PRICING_URL}`,
+      }
+    }
     return { isError: true, text: `Rate limited by the ThreadMine API — try again in ${e.retryAfterSeconds}s.` }
   }
   return { isError: true, text: `ThreadMine API error: ${(e as Error).message}` }

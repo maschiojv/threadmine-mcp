@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { formatAnalysis, reportLink } from '../src/format.js'
+import { formatAnalysis } from '../src/format.js'
+import { AccountGateway } from '../src/gateway.js'
+import type { ThreadMineClient } from '../src/client.js'
 import type { AnalysisDetail } from '../src/client.js'
 
 const APP = 'https://app.threadmine.dev'
+const opts = (ref: string) => ({ link: `${APP}/app/analises/${ref}`, ref })
 
 /** AnalysisDetail with EVERY consumed field populated (contract test, Golden Rule #14 spirit). */
 const fullAnalysis: AnalysisDetail = {
@@ -45,7 +48,7 @@ const fullAnalysis: AnalysisDetail = {
 
 describe('formatAnalysis', () => {
   it('includes every consumed field for a fully populated analysis', () => {
-    const text = formatAnalysis(fullAnalysis, APP)
+    const text = formatAnalysis(fullAnalysis, opts('a1b2c3'))
     // health + grade
     expect(text).toContain('42/100')
     expect(text).toContain('(grade D)')
@@ -74,7 +77,7 @@ describe('formatAnalysis', () => {
       problemasDetectados: { problemas: [], totalProblemas: 0, totalCriticos: 0, totalWarnings: 0, totalInfo: 0 },
       sumarioExecutivo: { grauSaude: 'A', healthScore: 98, causaRaizProvavel: null },
     }
-    const text = formatAnalysis(clean, APP)
+    const text = formatAnalysis(clean, opts(clean.id))
     expect(text).toContain('No problems detected')
     expect(text).toContain('98/100')
     expect(text).not.toContain('Probable root cause')
@@ -82,19 +85,19 @@ describe('formatAnalysis', () => {
 
   it('tolerates missing optional fields without printing undefined', () => {
     const sparse: AnalysisDetail = { id: 'x1', status: 'CONCLUIDA' }
-    const text = formatAnalysis(sparse, APP)
+    const text = formatAnalysis(sparse, opts('x1'))
     expect(text).not.toContain('undefined')
     expect(text).not.toContain('null')
     expect(text).toContain(`${APP}/app/analises/x1`)
   })
 })
 
-describe('reportLink', () => {
+describe('AccountGateway.link', () => {
   it('builds the app deep link', () => {
-    expect(reportLink('abc', APP)).toBe('https://app.threadmine.dev/app/analises/abc')
+    expect(new AccountGateway({} as ThreadMineClient, APP).link('abc')).toBe('https://app.threadmine.dev/app/analises/abc')
   })
 
   it('strips trailing slash from base url', () => {
-    expect(reportLink('abc', 'https://app.threadmine.dev/')).toBe('https://app.threadmine.dev/app/analises/abc')
+    expect(new AccountGateway({} as ThreadMineClient, 'https://app.threadmine.dev/').link('abc')).toBe('https://app.threadmine.dev/app/analises/abc')
   })
 })

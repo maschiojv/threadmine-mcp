@@ -1,14 +1,26 @@
 import type { AnalysisDetail } from './client.js'
 
-export function reportLink(analysisId: string, appBaseUrl: string): string {
-  return `${appBaseUrl.replace(/\/+$/, '')}/app/analises/${analysisId}`
+export interface FormatOptions {
+  /** Full interactive report. */
+  link: string
+  /** What get_analysis takes back (analysis id, or public token in anonymous mode). */
+  ref: string
+  anonymous?: boolean
+  /** ISO timestamp; anonymous reports expire. */
+  expiresAt?: string | null
 }
+
+/** Plans without a daily analysis limit. */
+export const PRICING_URL = 'https://threadmine.dev/en/pricing'
+
+/** Free account sign-up: keeps reports past the 7-day expiry of anonymous ones. */
+export const SIGNUP_URL = 'https://threadmine.dev/register'
 
 /**
  * Renders a completed analysis as markdown for the LLM.
  * Defensive on optionals: the backend may omit fields for older/partial analyses.
  */
-export function formatAnalysis(analysis: AnalysisDetail, appBaseUrl: string): string {
+export function formatAnalysis(analysis: AnalysisDetail, opts: FormatOptions): string {
   const lines: string[] = []
   const score = analysis.healthScore ?? analysis.sumarioExecutivo?.healthScore
   const grade = analysis.sumarioExecutivo?.grauSaude
@@ -59,6 +71,15 @@ export function formatAnalysis(analysis: AnalysisDetail, appBaseUrl: string): st
     lines.push('')
   }
 
-  lines.push(`**Full interactive report:** ${reportLink(analysis.id, appBaseUrl)}`)
+  lines.push(`**Full interactive report:** ${opts.link}`)
+  lines.push(`**Analysis id:** ${opts.ref}`)
+  if (opts.anonymous) {
+    const until = opts.expiresAt ? ` until ${opts.expiresAt.slice(0, 10)}` : ' for 7 days'
+    lines.push('')
+    lines.push(
+      `Analyzed without an account: the report link works for anyone who has it, and stays up${until}. ` +
+      `A free ThreadMine account (${SIGNUP_URL}) keeps the reports in your workspace.`,
+    )
+  }
   return lines.join('\n')
 }

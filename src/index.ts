@@ -6,6 +6,7 @@ const server = buildServer({
   apiKey: process.env.THREADMINE_API_KEY,
   apiBaseUrl: process.env.THREADMINE_API_URL ?? 'https://api.threadmine.dev',
   appBaseUrl: process.env.THREADMINE_APP_URL ?? 'https://app.threadmine.dev',
+  siteBaseUrl: process.env.THREADMINE_SITE_URL ?? 'https://threadmine.dev',
 })
 
 await server.connect(new StdioServerTransport())

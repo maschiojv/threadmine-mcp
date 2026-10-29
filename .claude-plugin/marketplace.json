@@ -1,0 +1,15 @@
+{
+  "name": "threadmine-plugins",
+  "owner": {
+    "name": "Felipe Maschio",
+    "url": "https://threadmine.dev"
+  },
+  "description": "Official ThreadMine plugins for Claude Code: JVM thread dump analysis.",
+  "plugins": [
+    {
+      "name": "threadmine",
+      "source": "./",
+      "description": "JVM thread dump analysis (deadlocks, pool exhaustion, pinning) inside Claude Code. No account needed."
+    }
+  ]
+}

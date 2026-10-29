@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { analyzeThreadDump, MAX_POLL_ATTEMPTS } from '../src/tools/analyze.js'
 import { AuthError, QuotaError } from '../src/client.js'
 import type { AnalysisDetail, ThreadMineClient } from '../src/client.js'
+import { AccountGateway } from '../src/gateway.js'
 
 const APP = 'https://app.threadmine.dev'
 
@@ -18,8 +19,7 @@ function deps(overrides: Partial<{
   const createAnalysis = overrides.createAnalysis ?? vi.fn().mockResolvedValue({ id: 'an-1' })
   const getAnalysis = overrides.getAnalysis ?? vi.fn().mockResolvedValue(done)
   return {
-    client: { createAnalysis, getAnalysis } as unknown as ThreadMineClient,
-    appBaseUrl: APP,
+    gateway: new AccountGateway({ createAnalysis, getAnalysis } as unknown as ThreadMineClient, APP),
     readFile: overrides.readFile ?? vi.fn().mockResolvedValue('Full thread dump from file'),
     hostname: () => 'test-host',
     sleep: vi.fn().mockResolvedValue(undefined),
