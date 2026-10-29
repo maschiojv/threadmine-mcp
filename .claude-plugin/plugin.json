@@ -3,15 +3,34 @@
   "displayName": "ThreadMine",
   "version": "0.2.0",
   "description": "Analyze JVM thread dumps without leaving Claude Code: deadlocks, pool exhaustion, CPU-bound threads and virtual thread pinning, with a health score and a shareable report. No account needed.",
-  "author": { "name": "Felipe Maschio", "url": "https://threadmine.dev" },
+  "author": {
+    "name": "Felipe Maschio",
+    "url": "https://threadmine.dev"
+  },
   "homepage": "https://threadmine.dev",
   "repository": "https://github.com/maschiojv/threadmine-mcp",
+  "documentationUrl": "https://github.com/maschiojv/threadmine-mcp#readme",
+  "supportUrl": "https://github.com/maschiojv/threadmine-mcp/issues",
+  "privacyPolicyUrl": "https://threadmine.dev/en/privacy-policy",
+  "termsOfServiceUrl": "https://threadmine.dev/en/terms-of-service",
   "license": "MIT",
-  "keywords": ["java", "jvm", "thread-dump", "jstack", "deadlock", "spring-boot", "virtual-threads", "performance"],
+  "keywords": [
+    "java",
+    "jvm",
+    "thread-dump",
+    "jstack",
+    "deadlock",
+    "spring-boot",
+    "virtual-threads",
+    "performance"
+  ],
   "mcpServers": {
     "threadmine": {
       "command": "npx",
-      "args": ["-y", "@threadmine/mcp@0.2.0"]
+      "args": [
+        "-y",
+        "@threadmine/mcp@0.2.0"
+      ]
     }
   }
 }
